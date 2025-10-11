@@ -1,42 +1,40 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMove : MonoBehaviour
 {
-    // ÀÌµ¿ ¼Óµµ¸¦ Inspector Ã¢¿¡¼­ Á¶ÀıÇÒ ¼ö ÀÖµµ·Ï publicÀ¸·Î ¼±¾ğÇÕ´Ï´Ù.
-    [Tooltip("Ä³¸¯ÅÍÀÇ ÀÌµ¿ ¼Óµµ¸¦ ¼³Á¤ÇÕ´Ï´Ù.")]
+    [Tooltip("í”Œë ˆì´ì–´ ì´ë™ ì†ë„")]
     public float moveSpeed = 5f;
 
-    // Rigidbody 2D ÄÄÆ÷³ÍÆ®¸¦ ´ãÀ» º¯¼ö
     private Rigidbody2D rb;
-
-    // ÀÌµ¿ ¹æÇâÀ» ÀúÀåÇÒ º¯¼ö
     private Vector2 movement;
 
-    // °ÔÀÓÀÌ ½ÃÀÛµÉ ¶§ ÇÑ¹ø¸¸ È£ÃâµÇ´Â Awake ÇÔ¼ö
-    void Awake()
+    private void Awake()
     {
-        // ½ºÅ©¸³Æ®°¡ ºÙ¾îÀÖ´Â °ÔÀÓ ¿ÀºêÁ§Æ®¿¡¼­ Rigidbody 2D ÄÄÆ÷³ÍÆ®¸¦ Ã£¾Æ rb º¯¼ö¿¡ ÇÒ´çÇÕ´Ï´Ù.
-        // GetComponent<T>()´Â ºñ¿ëÀÌ ¸¹ÀÌ µé ¼ö ÀÖÀ¸¹Ç·Î, Updateº¸´Ù´Â Awake³ª Start¿¡¼­ ÇÑ¹ø¸¸ È£ÃâÇÏ´Â °ÍÀÌ ÁÁ½À´Ï´Ù.
         rb = GetComponent<Rigidbody2D>();
     }
 
-    // ¸Å ÇÁ·¹ÀÓ¸¶´Ù È£ÃâµÇ´Â Update ÇÔ¼ö
-    void Update()
+    private void Update()
     {
-        // Å°º¸µå ÀÔ·ÂÀ» ¹Ş¾Æ ÀÌµ¿ ¹æÇâÀ» ¼³Á¤ÇÕ´Ï´Ù.
-        // Input.GetAxisRaw´Â -1, 0, 1 ¼¼ °¡Áö °ª¸¸ ¹İÈ¯ÇÏ¿© Áï°¢ÀûÀÎ ¹İÀÀÀ» º¸¿©Áİ´Ï´Ù. (GetAixs´Â °¡¼Ó/°¨¼Ó È¿°ú°¡ ÀÖÀ½)
-        movement.x = Input.GetAxisRaw("Horizontal"); // "Horizontal"Àº ±âº»ÀûÀ¸·Î A, D Å°¿Í ÁÂ¿ì È­»ìÇ¥ Å°¿¡ ¸ÅÇÎµÇ¾î ÀÖ½À´Ï´Ù.
-        movement.y = Input.GetAxisRaw("Vertical");   // "Vertical"Àº ±âº»ÀûÀ¸·Î W, S Å°¿Í À§¾Æ·¡ È­»ìÇ¥ Å°¿¡ ¸ÅÇÎµÇ¾î ÀÖ½À´Ï´Ù.
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning)
+        {
+            movement = Vector2.zero;
+            return;
+        }
+
+        movement.x = Input.GetAxisRaw("Horizontal");
+        movement.y = Input.GetAxisRaw("Vertical");
     }
 
-    // °íÁ¤µÈ ½Ã°£ °£°İÀ¸·Î ¹°¸® °è»ê°ú ÇÔ²² È£ÃâµÇ´Â FixedUpdate ÇÔ¼ö
-    void FixedUpdate()
+    private void FixedUpdate()
     {
-        // RigidbodyÀÇ À§Ä¡¸¦ ÀÌµ¿½ÃÅµ´Ï´Ù.
-        // rb.position: ÇöÀç À§Ä¡
-        // movement.normalized: ÀÌµ¿ ¹æÇâ º¤ÅÍÀÇ Å©±â¸¦ 1·Î ¸¸µé¾î ´ë°¢¼± ÀÌµ¿ ½Ã ¼Óµµ°¡ »¡¶óÁö´Â °ÍÀ» ¹æÁöÇÕ´Ï´Ù.
-        // moveSpeed: ¼³Á¤ÇÑ ÀÌµ¿ ¼Óµµ
-        // Time.fixedDeltaTime: FixedUpdateÀÇ È£Ãâ °£°İ ½Ã°£. ÇÁ·¹ÀÓ ¼Óµµ¿¡ °ü°è¾øÀÌ ÀÏÁ¤ÇÑ ¼Óµµ·Î ¿òÁ÷ÀÌ°Ô ÇÕ´Ï´Ù.
-        rb.MovePosition(rb.position + movement.normalized * moveSpeed * Time.deltaTime);
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning)
+        {
+            rb.velocity = Vector2.zero;
+            return;
+        }
+
+        Vector2 target = movement.sqrMagnitude > 1f ? movement.normalized : movement;
+        rb.MovePosition(rb.position + target * moveSpeed * Time.fixedDeltaTime);
     }
 }

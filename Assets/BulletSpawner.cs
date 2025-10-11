@@ -2,72 +2,106 @@ using UnityEngine;
 
 public class BulletSpawner : MonoBehaviour
 {
-    [Tooltip("»ý¼ºÇÒ ÃÑ¾ËÀÇ ÇÁ¸®ÆÕ")]
+    [Tooltip("ìƒì„±í•  íƒ„í™˜ í”„ë¦¬íŒ¹")]
     public GameObject bulletPrefab;
 
-    [Tooltip("ÃÑ¾Ë »ý¼º ÁÖ±â (ÃÊ)")]
-    public float spawnRate = 1f;
+    [Tooltip("ê¸°ë³¸ íƒ„í™˜ ìƒì„± ê°„ê²© (ì´ˆ)")]
+    public float baseSpawnInterval = 1f;
 
-    [Tooltip("ÃÑ¾ËÀÌ È­¸é °¡ÀåÀÚ¸®¿¡¼­ ¾ó¸¶³ª ¹Û¿¡¼­ »ý¼ºµÉÁö¿¡ ´ëÇÑ ¿©À¯°ª")]
+    [Tooltip("ìµœì†Œ íƒ„í™˜ ìƒì„± ê°„ê²© (ì´ˆ)")]
+    public float minSpawnInterval = 0.2f;
+
+    [Tooltip("ì´ˆë‹¹ ê°„ê²© ê°ì†ŒëŸ‰")]
+    public float spawnAcceleration = 0.01f;
+
+    [Tooltip("ì¹´ë©”ë¼ ê²½ê³„ ë°–ìœ¼ë¡œ ì–¼ë§ˆë§Œí¼ ë„ì›Œì„œ ìƒì„±í• ì§€")]
     public float spawnOffset = 1f;
 
-    // ´ÙÀ½ ÃÑ¾Ë »ý¼º±îÁöÀÇ ½Ã°£À» ÃßÀûÇÒ Å¸ÀÌ¸Ó
-    private float timer;
+    [Tooltip("íƒ„í™˜ ê¸°ë³¸ ì†ë„")]
+    public float baseBulletSpeed = 5f;
 
-    // ¸ÞÀÎ Ä«¸Þ¶ó
+    [Tooltip("ì´ˆë‹¹ íƒ„í™˜ ì†ë„ ì¦ê°€ëŸ‰")]
+    public float speedAcceleration = 0.1f;
+
+    private float timer;
     private Camera mainCamera;
 
-    void Start()
+    private void Start()
     {
-        // ¼º´ÉÀ» À§ÇØ Camera.mainÀ» ¸Å¹ø È£ÃâÇÏÁö ¾Ê°í º¯¼ö¿¡ ÀúÀåÇØ µÓ´Ï´Ù.
         mainCamera = Camera.main;
     }
 
-    void Update()
+    private void Update()
     {
-        // Å¸ÀÌ¸Ó¸¦ ¾÷µ¥ÀÌÆ®ÇÕ´Ï´Ù.
-        timer += Time.deltaTime;
-
-        // Å¸ÀÌ¸Ó°¡ ¼³Á¤µÈ »ý¼º ÁÖ±â¸¦ ³Ñ¾î¼­¸é ÃÑ¾ËÀ» »ý¼ºÇÕ´Ï´Ù.
-        if (timer >= spawnRate)
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning)
         {
-            SpawnBullet();
-            // Å¸ÀÌ¸Ó¸¦ ¸®¼ÂÇÕ´Ï´Ù.
-            timer = 0f;
-        }
-    }
-
-    void SpawnBullet()
-    {
-        if (bulletPrefab == null || mainCamera == null)
-        {
-            Debug.LogError("Bullet Prefab ¶Ç´Â Main Camera°¡ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù!");
             return;
         }
 
-        // 0 ¶Ç´Â 1À» ·£´ýÇÏ°Ô ¼±ÅÃÇÏ¿© ¿ÞÂÊ(0) ¶Ç´Â ¿À¸¥ÂÊ(1)¿¡¼­ »ý¼ºÇÒÁö °áÁ¤
-        bool spawnOnLeft = Random.Range(0, 2) == 0;
-
-        // 1. ½ºÆù À§Ä¡ °è»ê
-        // È­¸éÀÇ ¼¼·Î ¹üÀ§ (À§ÂÊ ³¡ ~ ¾Æ·¡ÂÊ ³¡)¸¦ ¿ùµå ÁÂÇ¥ ±âÁØÀ¸·Î ±¸ÇÕ´Ï´Ù.
-        float screenHalfHeight = mainCamera.orthographicSize;
-        float randomY = Random.Range(-screenHalfHeight, screenHalfHeight);
-
-        // È­¸éÀÇ °¡·Î ¹üÀ§ (¿ÞÂÊ ³¡, ¿À¸¥ÂÊ ³¡)¸¦ ¿ùµå ÁÂÇ¥ ±âÁØÀ¸·Î ±¸ÇÕ´Ï´Ù.
-        float screenHalfWidth = screenHalfHeight * mainCamera.aspect;
-        float spawnX = spawnOnLeft ? -screenHalfWidth - spawnOffset : screenHalfWidth + spawnOffset;
-
-        Vector2 spawnPosition = new Vector2(spawnX, randomY);
-
-        // 2. ÃÑ¾Ë »ý¼º
-        GameObject newBullet = Instantiate(bulletPrefab, spawnPosition, Quaternion.identity);
-
-        // 3. »ý¼ºµÈ ÃÑ¾Ë¿¡ ¹æÇâ ¼³Á¤
-        Bullet bulletScript = newBullet.GetComponent<Bullet>();
-        if (bulletScript != null)
+        timer += Time.deltaTime;
+        float interval = GetCurrentInterval();
+        if (timer < interval)
         {
-            // ¿ÞÂÊ¿¡¼­ »ý¼ºµÇ¾ú´Ù¸é ¿À¸¥ÂÊÀ¸·Î, ¿À¸¥ÂÊ¿¡¼­ »ý¼ºµÇ¾ú´Ù¸é ¿ÞÂÊÀ¸·Î ¹æÇâÀ» ¼³Á¤
-            bulletScript.direction = spawnOnLeft ? Vector2.right : Vector2.left;
+            return;
+        }
+
+        timer = 0f;
+        SpawnBullet(GetCurrentSpeed());
+    }
+
+    private float GetCurrentInterval()
+    {
+        float elapsed = GameManager.Instance != null ? GameManager.Instance.ElapsedTime : Time.timeSinceLevelLoad;
+        float interval = baseSpawnInterval - elapsed * spawnAcceleration;
+        return Mathf.Max(minSpawnInterval, interval);
+    }
+
+    private float GetCurrentSpeed()
+    {
+        float elapsed = GameManager.Instance != null ? GameManager.Instance.ElapsedTime : Time.timeSinceLevelLoad;
+        return baseBulletSpeed + elapsed * speedAcceleration;
+    }
+
+    private void SpawnBullet(float bulletSpeed)
+    {
+        if (bulletPrefab == null || mainCamera == null)
+        {
+            Debug.LogWarning("BulletPrefab ë˜ëŠ” Cameraê°€ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
+            return;
+        }
+
+        float halfHeight = mainCamera.orthographicSize;
+        float halfWidth = halfHeight * mainCamera.aspect;
+
+        int edge = Random.Range(0, 4);
+        Vector2 spawnPos;
+        Vector2 direction;
+
+        switch (edge)
+        {
+            case 0: // Left
+                spawnPos = new Vector2(-halfWidth - spawnOffset, Random.Range(-halfHeight, halfHeight));
+                direction = Vector2.right;
+                break;
+            case 1: // Right
+                spawnPos = new Vector2(halfWidth + spawnOffset, Random.Range(-halfHeight, halfHeight));
+                direction = Vector2.left;
+                break;
+            case 2: // Top
+                spawnPos = new Vector2(Random.Range(-halfWidth, halfWidth), halfHeight + spawnOffset);
+                direction = Vector2.down;
+                break;
+            default: // Bottom
+                spawnPos = new Vector2(Random.Range(-halfWidth, halfWidth), -halfHeight - spawnOffset);
+                direction = Vector2.up;
+                break;
+        }
+
+        GameObject newBullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
+        if (newBullet.TryGetComponent(out Bullet bullet))
+        {
+            bullet.direction = direction;
+            bullet.speed = bulletSpeed;
         }
     }
 }

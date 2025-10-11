@@ -2,31 +2,44 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-
-    [Tooltip("ÃÑ¾ËÀÇ ÀÌµ¿ ¼Óµµ")]
+    [Tooltip("íƒ„í™˜ ì´ë™ ì†ë„")]
     public float speed = 10f;
 
-    [Tooltip("ÃÑ¾ËÀÌ »ç¶óÁö±â±îÁöÀÇ ½Ã°£ (ÃÊ)")]
+    [Tooltip("íƒ„í™˜ ìƒì¡´ ì‹œê°„ (ì´ˆ)")]
     public float lifeTime = 5f;
 
-    // ÃÑ¾ËÀÌ ³¯¾Æ°¥ ¹æÇâ (BulletSpawner°¡ ¼³Á¤ÇØ ÁÙ º¯¼ö)
-    // publicÀ¸·Î ¼±¾ğÇØ¾ß ¿ÜºÎ ½ºÅ©¸³Æ®¿¡¼­ Á¢±ÙÇÒ ¼ö ÀÖ½À´Ï´Ù.
-    [HideInInspector] // Inspector Ã¢¿¡¼­´Â º¸ÀÌÁö ¾Ê°Ô ¼³Á¤
+    [HideInInspector]
     public Vector2 direction = Vector2.right;
 
-    // ½ºÅ©¸³Æ®°¡ È°¼ºÈ­µÉ ¶§ ÇÑ ¹ø È£ÃâµË´Ï´Ù.
-    void Start()
+    private void Start()
     {
-        // lifeTime ÀÌÈÄ¿¡ ÀÚµ¿À¸·Î ÀÌ °ÔÀÓ ¿ÀºêÁ§Æ®¸¦ ÆÄ±«ÇÕ´Ï´Ù.
-        // ÃÑ¾ËÀÌ È­¸é ¹Û¿¡ ³ª°¡µµ °è¼Ó ½×ÀÌ´Â °ÍÀ» ¹æÁöÇÕ´Ï´Ù.
         Destroy(gameObject, lifeTime);
     }
 
-    // ¸Å ÇÁ·¹ÀÓ¸¶´Ù È£ÃâµË´Ï´Ù.
-    void Update()
+    private void Update()
     {
-        // ÁöÁ¤µÈ direction ¹æÇâÀ¸·Î speedÀÇ ¼Óµµ·Î °è¼Ó ÀÌµ¿½ÃÅµ´Ï´Ù.
-        // Time.deltaTimeÀ» °öÇØ ÇÁ·¹ÀÓ ¼Óµµ¿¡ °ü°è¾øÀÌ ÀÏÁ¤ÇÑ ¼Óµµ¸¦ º¸ÀåÇÕ´Ï´Ù.
-        transform.Translate(direction * speed * Time.deltaTime);
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning)
+        {
+            return;
+        }
+
+        transform.Translate(direction * speed * Time.deltaTime, Space.World);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        var manager = GameManager.Instance;
+        if (manager == null || !manager.IsGameRunning)
+        {
+            return;
+        }
+
+        if (!other.TryGetComponent(out PlayerMove player))
+        {
+            return;
+        }
+
+        manager.DamagePlayer();
+        Destroy(gameObject);
     }
 }
