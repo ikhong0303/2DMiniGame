@@ -30,7 +30,7 @@ public class PlayerMove : MonoBehaviour
     {
         if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning)
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             return;
         }
 
