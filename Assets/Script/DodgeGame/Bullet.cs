@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
+//부분수정
     [Tooltip("탄환 이동 속도")]
     public float speed = 10f;
 
